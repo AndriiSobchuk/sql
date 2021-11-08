@@ -137,3 +137,81 @@ witness_age INT
 
 
 
+
+/**************** NEW TABLES *************************************/
+/* MASTER TABLE */
+create table master(
+alien_id INT NOT NULL,
+location_id INT NOT NULL,
+witness_id INT NOT NULL,
+time_of_day VARCHAR(255),
+FOREIGN KEY (alien_id) REFERENCES alien (alien_id),
+FOREIGN KEY (location_id) REFERENCES location (location_id),
+FOREIGN KEY (witness_id) REFERENCES witness (witness_id)
+);
+
+/*TABLE ALIEN*/
+create table alien(
+alien_id INT PRIMARY KEY,
+alien_name VARCHAR(255),
+alien_type VARCHAR(255),
+alien_color VARCHAR(255)
+);
+
+/* TABLE LOCATION*/
+create table location(
+location_id INT PRIMARY KEY,
+lat VARCHAR(255),
+lon VARCHAR(255),
+place VARCHAR(255),
+country VARCHAR(255),
+region VARCHAR(255)
+);
+
+/*TABLE WITNESS*/
+create table witness(
+witness_id INT PRIMARY KEY,
+witness_name VARCHAR(255),
+witness_last_name VARCHAR(255),
+witness_address TEXT,
+witness_age INT
+);
+
+insert into alien(alien_id, alien_name, alien_type, alien_color) select distinct alien_id, alien_name, alien_type, alien_color from raw_input;
+
+insert into location(location_id, lat, lon, place, country, region) select distinct location_id, lat, lon, place, country, region from raw_input;
+
+insert into witness(witness_id, witness_name, witness_address, witness_age) select distinct witness_id, witness_name, witness_address, witness_age from raw_input;
+
+INSERT INTO master(alien_id, location_id,  witness_id, time_of_day) select distinct alien_id, location_id,  witness_id, time_of_day from raw_input;
+
+
+
+sudo docker run -it -v "$(pwd)/mariadb":/src  -p 127.0.0.1:3366:3306  --name mariadb -e MARIADB_ROOT_PASSWORD=password -d mariadb
+
+
+
+sudo docker run -it -v "$(pwd)/postgres":/src -p 127.0.0.1:5533:5432  --name postgres -e POSTGRES_PASSWORD=password -d postgres
+
+
+csvsql --db mysql+mysqlconnector://root:password@localhost:3366/‘csvfiles’ --insert --tables raw_input  --no-create ~/sql/type.csv
+
+ mysql -h 127.0.0.1 -P 3366 -u root -p
+
+
+
+https://stackoverflow.com/questions/5417386/import-mysql-dump-to-postgresql-database/44719416
+
+
+apt install mariadb-client
+pgloader mysql://root:password@172.17.0.3/aliens  postgres://postgres:password@172.17.0.2/aliens
+
+
+psql -hlocalhost -p 5432 -Upostgres 
+
+insert into master(alien_id, location_id,  witness_id, time_of_day) select distinct alien_id, location_id,  witness_id, time_of_day from raw_input;
+
+
+
+
+
